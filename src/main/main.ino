@@ -20,6 +20,8 @@ int status = WL_IDLE_STATUS;     // the WiFi radio's status
 WiFiServer server(80);
 WiFiClient initClient;
 
+const int moistPin = A6;
+
 // Sensors
 #define tempIOTC
 #define humiIOTC
@@ -183,33 +185,42 @@ void printWifiStatus() {
 // so that we get data from sensors according to what was defined at the top
 
 String getData() {
-  Strind data = "";
+  // data that will be formatted and sent to the server
+  String data = "";
 
+  // counts the number of sensors
+  unsigned int sensorCount = 0;  
+  
   // append sensor data conditionnaly
 
   #ifdef tempIOTC
+    ++sensorCount;
     float temp = getTemp();
     // convert and format to string
   #endif
 
   #ifdef humiIOTC
-    float temp = getHumi();
+    ++sensorCount;
+    float humi = getHumi();
     // convert and format to string
   #endif
 
   #ifdef lighIOTC
+    ++sensorCount;
     int r, g, b, light;
-    getLight(r, g, b, light)
+    getLight(r, g, b, light);
     // convert and format to string
   #endif
 
   #ifdef humiSOIL
+    ++sensorCount;
     //TODO
     // convert and format to string
   #endif
 
   #ifdef movePIR
-    int temp = getProx();
+    ++sensorCount;    
+    int prox = getProx();
     // convert and format to string
   #endif
 }
@@ -233,8 +244,11 @@ void getLight(int r, int g, int b, int light) {
   carrier.Light.readColor(r,g, b, light);
 }
 
-// get humidity from SOIL sensor
-
+// get humidity from SIL sensor
+int getSoilHum() {
+  int raw_moisture = analogRead(moistPin);
+  return map(raw_moisture, 0, 1023, 0, 100);
+}
 
 
 // get movement from PIR sensor
