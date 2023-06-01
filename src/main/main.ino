@@ -182,6 +182,38 @@ void printWifiStatus() {
 // use defines here : #ifdef tempIOTC ...#endif
 // so that we get data from sensors according to what was defined at the top
 
+String getData() {
+  Strind data = "";
+
+  // append sensor data conditionnaly
+
+  #ifdef tempIOTC
+    float temp = getTemp();
+    // convert and format to string
+  #endif
+
+  #ifdef humiIOTC
+    float temp = getHumi();
+    // convert and format to string
+  #endif
+
+  #ifdef lighIOTC
+    int r, g, b, light;
+    getLight(r, g, b, light)
+    // convert and format to string
+  #endif
+
+  #ifdef humiSOIL
+    //TODO
+    // convert and format to string
+  #endif
+
+  #ifdef movePIR
+    int temp = getProx();
+    // convert and format to string
+  #endif
+}
+
 // package data to send
 
 // send data
