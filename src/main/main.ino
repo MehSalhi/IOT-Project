@@ -187,11 +187,23 @@ void printWifiStatus() {
 // send data
 
 // get temperature from IOT Carrier
+float getTemp {
+  float temperature = carrier.Env.readTemperature();
+}
 
 // get humidity from IOT Carrier
+float getHumi {
+  float humidity    = carrier.Env.readHumidity();
+}
 
 // get light from IOT Carrier
+void getLight(r, g, b, flight) {  
+  carrier.Light.readColor(r,g, b, light);
+}
 
 // get humidity from SOIL sensor
 
+
+
 // get movement from PIR sensor
+int proximity = carrier.Light.readProximity();
