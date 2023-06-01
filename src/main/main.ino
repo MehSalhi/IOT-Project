@@ -18,6 +18,10 @@ char ssid[] = SECRET_SSID;        // your network SSID (name)
 char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
 int status = WL_IDLE_STATUS;     // the WiFi radio's status
 WiFiServer server(80);
+WiFiClient initClient;
+
+
+IPAddress commander(192,168,45,202); //your central server address
 
 void setup() {
   // put your setup code here, to run once:
@@ -49,9 +53,29 @@ void setup() {
     // wait 10 seconds for connection:
     delay(10000);
   }
+
+  Serial.println("\nStarting connection to server...");
+  // if you get a connection, report back via serial:
+  if (initClient.connect(commander, 8181)) {
+    IPAddress localIp = WiFi.localIP();
+    byte mac[6];
+    WiFi.macAddress(mac);
+    String tags = "[\"serre 1\"]";
+    String capteurs = "[\"temp1\", \"hum1\"]";
+    String payload = "{\"DevID\": " + String((char*)mac) + ", \"IpAddr\": " + localIp  + ", \"Tags\": " + tags + + ", \"Capteurs\": " + capteurs + "}";
+    Serial.println("connected to server");
+    // Make a HTTP request:
+    initClient.println("POST /search?q=arduino HTTP/1.1");
+    initClient.println("Content-Type: application/json");
+    initClient.println("Host: 192.168.45.202:8181");
+    initClient.println("Connection: close");
+    initClient.println();
+    initClient.println(payload); //Pass the parameters here
+  }
+  initClient.stop();
   server.begin();
   // you're connected now, so print out the data:
-  Serial.print("You're connected to the network");
+  Serial.println("You're connected to the network");
   printWifiStatus();
 }
 
@@ -85,6 +109,7 @@ void listenClients(){
           client.println("<html>");
           
           // Send the datas here
+          client.println("You're at the root");
           
           client.println("<br />");
           
@@ -116,7 +141,7 @@ void listenClients(){
           
           client.println("</html>");
           break;
-        }
+        }        
 
       }
     }
