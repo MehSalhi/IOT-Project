@@ -29,6 +29,9 @@ const int moistPin = A6;
 #define humiSOIL
 #define movePIR
 
+int r, g, b, light;
+int pir;
+
 IPAddress commander(192,168,45,202); //your central server address
 
 void setup() {
@@ -38,6 +41,22 @@ void setup() {
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
+
+  if (!carrier.begin()) {
+    Serial.println("Failed to initialize!");
+    while (1);
+  }
+
+  delay(1000);
+  carrier.display.setTextSize(3);
+
+  pir = carrier.getBoardRevision() == 1 ? A5 : A0;
+  carrier.display.setRotation(0);
+  delay(1500);
+  pinMode(pir, INPUT);
+
+  // TEST getData. TODO: remove when done testing here
+  getData();
 
   // check for the WiFi module:
   if (WiFi.status() == WL_NO_MODULE) {
@@ -85,11 +104,15 @@ void setup() {
   // you're connected now, so print out the data:
   Serial.println("You're connected to the network");
   printWifiStatus();
+  
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  listenClients();
+  delay(2000);
+  // test data sensors
+  String myStr = getData();
+  listenClients();        
 }
 
 void listenClients(){
@@ -190,40 +213,57 @@ String getData() {
 
   // counts the number of sensors
   unsigned int sensorCount = 0;  
-  
-  // append sensor data conditionnaly
 
+  // append sensor data conditionnaly
+  
   #ifdef tempIOTC
+    Serial.print("tempIOTC: ");
     ++sensorCount;
     float temp = getTemp();
+     Serial.println(temp);
     // convert and format to string
   #endif
-
+  
   #ifdef humiIOTC
+    Serial.print("humiIOTC: ");
     ++sensorCount;
     float humi = getHumi();
+    Serial.println(humi);
     // convert and format to string
   #endif
 
   #ifdef lighIOTC
+    Serial.print("lighIOTC: ");
     ++sensorCount;
-    int r, g, b, light;
-    getLight(r, g, b, light);
+    
+    getLight();
+    Serial.println(light);
     // convert and format to string
   #endif
 
   #ifdef humiSOIL
+    Serial.print("humiSOIL: ");
     ++sensorCount;
-    //TODO
     int humiSoil = getSoilHum();
+    Serial.println(humiSoil);
     // convert and format to string
   #endif
 
   #ifdef movePIR
+    Serial.print("movePIR: ");
     ++sensorCount;    
     int prox = getProx();
+    Serial.println(prox);
     // convert and format to string
   #endif
+
+  // TODO: move out of this func
+  // should be used to display the return of getData()
+  carrier.display.setCursor(0, 0);
+  carrier.display.fillScreen(ST77XX_BLACK);
+  carrier.display.print("tempIOTC\n" + String(temp) + "\n" + "humiIOTC\n" + humi + "\n" + "lighIOTC\n" + light + "\n" + "humiSOIL\n" + humiSoil + "\n" + "movePIR\n" + prox);
+
+  return "ok";
 }
 
 // package data to send
@@ -232,7 +272,8 @@ String getData() {
 
 // get temperature from IOT Carrier
 float getTemp() {
-  return carrier.Env.readTemperature();
+  float temp = carrier.Env.readTemperature();
+  return temp;
 }
 
 // get humidity from IOT Carrier
@@ -241,8 +282,11 @@ float getHumi() {
 }
 
 // get light from IOT Carrier
-void getLight(int r, int g, int b, int light) {  
-  carrier.Light.readColor(r,g, b, light);
+void getLight() {  
+  while (! carrier.Light.colorAvailable()) {
+    delay(5);
+  }
+  carrier.Light.readColor(r, g, b, light);
 }
 
 // get humidity from SIL sensor
@@ -251,9 +295,8 @@ int getSoilHum() {
   return map(raw_moisture, 0, 1023, 0, 100);
 }
 
-
 // get movement from PIR sensor
 int getProx() {
-  return carrier.Light.readProximity();
+  return digitalRead(pir);
 }
 
