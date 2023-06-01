@@ -20,6 +20,12 @@ int status = WL_IDLE_STATUS;     // the WiFi radio's status
 WiFiServer server(80);
 WiFiClient initClient;
 
+// Sensors
+#define tempIOTC
+#define humiIOTC
+#define lighIOTC
+#define humiSOIL
+#define movePIR
 
 IPAddress commander(192,168,45,202); //your central server address
 
@@ -170,3 +176,22 @@ void printWifiStatus() {
   Serial.print(rssi);
   Serial.println(" dBm");
 }
+
+
+// get data from sensors
+// use defines here : #ifdef tempIOTC ...#endif
+// so that we get data from sensors according to what was defined at the top
+
+// package data to send
+
+// send data
+
+// get temperature from IOT Carrier
+
+// get humidity from IOT Carrier
+
+// get light from IOT Carrier
+
+// get humidity from SOIL sensor
+
+// get movement from PIR sensor
