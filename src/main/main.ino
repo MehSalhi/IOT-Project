@@ -215,6 +215,7 @@ String getData() {
   #ifdef humiSOIL
     ++sensorCount;
     //TODO
+    int humiSoil = getSoilHum();
     // convert and format to string
   #endif
 
