@@ -9,16 +9,24 @@
 #include <SPI.h>
 #include <WiFiNINA.h>
 #include <Arduino_MKRIoTCarrier.h>
+#include <ArduinoJson.h>
+#include <ArduinoMqttClient.h>
 
-#define SECRET_SSID "Ancalagon"
-#define SECRET_PASS "actuelle"
+#define SECRET_SSID "."
+#define SECRET_PASS "hqh97n8ircpb5bj"
 
 MKRIoTCarrier carrier; 
 char ssid[] = SECRET_SSID;        // your network SSID (name)
 char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
 int status = WL_IDLE_STATUS;     // the WiFi radio's status
-WiFiServer server(80);
-WiFiClient initClient;
+WiFiClient wifiClient;
+MqttClient mqttClient(wifiClient);
+
+const char broker[] = "test.mosquitto.org";
+int        port     = 1883;
+
+const char topicSub[]  = "real_unique_topic";
+const char topicPub[]  = "real_unique_topic_2";
 
 const int moistPin = A6;
 
@@ -32,7 +40,12 @@ const int moistPin = A6;
 int r, g, b, light;
 int pir;
 
-IPAddress commander(192,168,45,202); //your central server address
+IPAddress commander(192,168,9,194); //your central server address
+
+//set interval for sending messages (milliseconds)
+const long interval = 8000;
+unsigned long previousMillis = 0;
+int count = 0;
 
 void setup() {
   // put your setup code here, to run once:
@@ -56,7 +69,7 @@ void setup() {
   pinMode(pir, INPUT);
 
   // TEST getData. TODO: remove when done testing here
-  getData();
+  //getData();
 
   // check for the WiFi module:
   if (WiFi.status() == WL_NO_MODULE) {
@@ -82,107 +95,87 @@ void setup() {
   }
 
   Serial.println("\nStarting connection to server...");
-  // if you get a connection, report back via serial:
-  if (initClient.connect(commander, 8181)) {
-    IPAddress localIp = WiFi.localIP();
-    byte mac[6];
-    WiFi.macAddress(mac);
-    String tags = "[\"serre 1\"]";
-    String capteurs = "[\"temp1\", \"hum1\"]";
-    String payload = "{\"DevID\": " + String((char*)mac) + ", \"IpAddr\": " + localIp  + ", \"Tags\": " + tags + + ", \"Capteurs\": " + capteurs + "}";
-    Serial.println("connected to server");
-    // Make a HTTP request:
-    initClient.println("POST /search?q=arduino HTTP/1.1");
-    initClient.println("Content-Type: application/json");
-    initClient.println("Host: 192.168.45.202:8181");
-    initClient.println("Connection: close");
-    initClient.println();
-    initClient.println(payload); //Pass the parameters here
+  byte mac[6];
+  WiFi.macAddress(mac);
+  for(int i = 0; i < 6; ++i){
+    Serial.print(mac[i]);
   }
-  initClient.stop();
-  server.begin();
+  Serial.println();
+
+  Serial.print("Attempting to connect to the MQTT broker: ");
+  Serial.println(broker);
+
+  if (!mqttClient.connect(broker, port)) {
+    Serial.print("MQTT connection failed! Error code = ");
+    Serial.println(mqttClient.connectError());
+    while (1);
+  }
+
+  Serial.println("You're connected to the MQTT broker!");
+
+  Serial.println();
   // you're connected now, so print out the data:
   Serial.println("You're connected to the network");
   printWifiStatus();
+
+  // set the message receive callback
+  mqttClient.onMessage(listenTopics);
+
+  Serial.print("Subscribing to topic: ");
+  Serial.println(topicPub);
+  Serial.println(topicSub);
+  Serial.println();
+
+  // subscribe to a topic
+  mqttClient.subscribe(topicSub);    // TODO A changer pour les vrais topics
+  mqttClient.subscribe(topicPub);
   
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  delay(2000);
+  // call poll() regularly to allow the library to send MQTT keep alive which
+
+  // avoids being disconnected by the broker
+  mqttClient.poll();
+  //delay(2000);
   // test data sensors
-  String myStr = getData();
-  listenClients();        
+  //String myStr = getData();
+  unsigned long currentMillis = millis();
+
+  if (currentMillis - previousMillis >= interval) {
+    // save the last time a message was sent
+    previousMillis = currentMillis;
+    publishTopics(topicPub, "Hey! I told you to STOOOOOP!");
+  }
+        
 }
 
-void listenClients(){
-  WiFiClient client = server.available();
-  if (client) {
-    Serial.println("new client");
-    // an HTTP request ends with a blank line
-    boolean currentLineIsBlank = true;
-    String currentLine = "";
-    while (client.connected()) {
-      if (client.available()) {
-        char c = client.read();
-        Serial.write(c);
-        // if you've gotten to the end of the line (received a newline
-        // character) and the line is blank, the HTTP request has ended,
-        // so you can send a reply
-        if (c == '\n' && currentLineIsBlank) {
-          // send a standard HTTP response header
-          client.println("HTTP/1.1 200 OK");
-          client.println("Content-Type: text/html");
-          client.println("Connection: close");  // the connection will be closed after completion of the response
-          client.println("Refresh: 20");  // refresh the page automatically every 5 sec
-          client.println();
-          client.println("<!DOCTYPE HTML>");
-          client.println("<html>");
-          
-          // Send the datas here
-          client.println("You're at the root");
-          
-          client.println("<br />");
-          
-          client.println("</html>");
-          break;
-        }
-        if (c == '\n') {
-          // you're starting a new line
-          currentLineIsBlank = true;
-          currentLine = "";
-        } else if (c != '\r') {
-          // you've gotten a character on the current line
-          currentLineIsBlank = false;
-          currentLine += c;
-        }
+void listenTopics(int messageSize){
+  // we received a message, print out the topic and contents
+  Serial.println("Received a message with topic '");
+  Serial.print(mqttClient.messageTopic());      // TODO Changer pour effectuer les actions en fonction du topic
+  Serial.print("', length ");
+  Serial.print(messageSize);
+  Serial.println(" bytes:");
 
-        if (currentLine.endsWith("GET /test")) {
-               // send a standard HTTP response header
-          client.println("HTTP/1.1 200 OK");
-          client.println("Content-Type: text/html");
-          client.println("Connection: close");  // the connection will be closed after completion of the response
-          client.println("Refresh: 20");  // refresh the page automatically every 5 sec
-          client.println();
-          client.println("<!DOCTYPE HTML>");
-          client.println("<html>");
-          // Send the datas here
-          client.print("My test");
-          client.println("<br />");
-          
-          client.println("</html>");
-          break;
-        }        
-
-      }
-    }
-    // give the web browser time to receive the data
-    delay(1);
-
-    // close the connection:
-    client.stop();
-    Serial.println("client disconnected");
+  // use the Stream interface to print the contents
+  while (mqttClient.available()) {
+    Serial.print((char)mqttClient.read());
   }
+  Serial.println();
+  Serial.println();
+}
+
+void publishTopics(const char* topic, String value){
+  Serial.print("Sending message to topic: ");
+  Serial.println(topic);
+  Serial.println(value);
+
+  // send message, the Print interface can be used to set the message contents
+  mqttClient.beginMessage(topic);
+  mqttClient.print(value);
+  mqttClient.endMessage();
 }
 
 void printWifiStatus() {
@@ -209,7 +202,10 @@ void printWifiStatus() {
 
 String getData() {
   // data that will be formatted and sent to the server
-  String data = "";
+  DynamicJsonDocument data(1024);
+  byte mac[6];
+  WiFi.macAddress(mac);
+  data["devID"] = String((char*)mac);
 
   // counts the number of sensors
   unsigned int sensorCount = 0;  
@@ -222,6 +218,7 @@ String getData() {
     float temp = getTemp();
      Serial.println(temp);
     // convert and format to string
+    data["temp"] = temp;
   #endif
   
   #ifdef humiIOTC
@@ -230,6 +227,7 @@ String getData() {
     float humi = getHumi();
     Serial.println(humi);
     // convert and format to string
+    data["humi"] = humi;
   #endif
 
   #ifdef lighIOTC
@@ -239,6 +237,7 @@ String getData() {
     getLight();
     Serial.println(light);
     // convert and format to string
+    data["light"] = light;
   #endif
 
   #ifdef humiSOIL
@@ -247,6 +246,7 @@ String getData() {
     int humiSoil = getSoilHum();
     Serial.println(humiSoil);
     // convert and format to string
+    data["humiSoil"] = humiSoil;
   #endif
 
   #ifdef movePIR
@@ -255,6 +255,7 @@ String getData() {
     int prox = getProx();
     Serial.println(prox);
     // convert and format to string
+    data["prox"] = prox;
   #endif
 
   // TODO: move out of this func
@@ -262,8 +263,10 @@ String getData() {
   carrier.display.setCursor(0, 0);
   carrier.display.fillScreen(ST77XX_BLACK);
   carrier.display.print("tempIOTC\n" + String(temp) + "\n" + "humiIOTC\n" + humi + "\n" + "lighIOTC\n" + light + "\n" + "humiSOIL\n" + humiSoil + "\n" + "movePIR\n" + prox);
-
-  return "ok";
+  
+  String result = "";
+  serializeJson(data, result);
+  return result;
 }
 
 // package data to send
