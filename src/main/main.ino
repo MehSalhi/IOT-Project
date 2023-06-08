@@ -49,7 +49,7 @@ IPAddress commander(192,168,9,194); //your central server address
 
 //set interval for sending messages (milliseconds)
 // TODO ajouter les intervals pour chaque capteur individuel
-const long interval = 10000;
+const long interval = 20000;
 unsigned long previousMillis = 0;
 int count = 0;
 
@@ -143,16 +143,13 @@ void loop() {
 
   // avoids being disconnected by the broker
   mqttClient.poll();
-  //delay(2000);
-  // test data sensors
-  //String myStr = getData();
-  // TODO adapter le système d'interval et automatiser le choix du topic
+
   unsigned long currentMillis = millis();
 
   if (currentMillis - previousMillis >= interval) {
     // save the last time a message was sent
     previousMillis = currentMillis;
-    publishTopics(topicPub, "Hey! I told you to STOOOOOP!");
+    sendData();
     
   }
         
@@ -183,6 +180,7 @@ void publishTopics(String topic, String value){
   mqttClient.beginMessage(topic);
   mqttClient.print(value);
   mqttClient.endMessage();
+  delay(500);
 }
 
 void printWifiStatus() {
@@ -207,12 +205,8 @@ void printWifiStatus() {
 // use defines here : #ifdef tempIOTC ...#endif
 // so that we get data from sensors according to what was defined at the top
 
-String getData() {
+void sendData() {
   // data that will be formatted and sent to the server
-  DynamicJsonDocument data(1024);
-  byte mac[6];
-  WiFi.macAddress(mac);
-  data["devID"] = String((char*)mac);
 
   // counts the number of sensors
   unsigned int sensorCount = 0;  
@@ -220,60 +214,57 @@ String getData() {
   // append sensor data conditionnaly
   
   #ifdef tempIOTC
-    Serial.print("tempIOTC: ");
+    //Serial.print("tempIOTC: ");
     ++sensorCount;
     String temp = getTemp();
-     Serial.println(temp);
+    //Serial.println(temp);
     // convert and format to string
-    data["temp"] = temp;
+    publishTopics(topicPub, temp);
   #endif
   
   #ifdef humiIOTC
-    Serial.print("humiIOTC: ");
+    //Serial.print("humiIOTC: ");
     ++sensorCount;
     String humi = getHumi();
-    Serial.println(humi);
+    //Serial.println(humi);
     // convert and format to string
-    data["humi"] = humi;
+    publishTopics(topicPub, humi);
   #endif
 
   #ifdef lighIOTC
-    Serial.print("lighIOTC: ");
+    //Serial.print("lighIOTC: ");
     ++sensorCount;
     
-    getLight();
-    Serial.println(light);
+    String resLight = getLight();
+    //Serial.println(light);
     // convert and format to string
-    data["light"] = light;
+    publishTopics(topicPub, resLight);
   #endif
 
   #ifdef humiSOIL
-    Serial.print("humiSOIL: ");
+    //Serial.print("humiSOIL: ");
     ++sensorCount;
-    int humiSoil = getSoilHum();
-    Serial.println(humiSoil);
+    String humiSoil = getSoilHum();
+    //Serial.println(humiSoil);
     // convert and format to string
-    data["humiSoil"] = humiSoil;
+    publishTopics(topicPub, humiSoil);
   #endif
 
   #ifdef movePIR
-    Serial.print("movePIR: ");
+    //Serial.print("movePIR: ");
     ++sensorCount;    
     int prox = getProx();
-    Serial.println(prox);
+    //Serial.println(prox);
     // convert and format to string
-    data["prox"] = prox;
+    //data["prox"] = prox;
   #endif
 
   // TODO: move out of this func
   // should be used to display the return of getData()
   carrier.display.setCursor(0, 0);
   carrier.display.fillScreen(ST77XX_BLACK);
-  carrier.display.print("tempIOTC\n" + String(temp) + "\n" + "humiIOTC\n" + humi + "\n" + "lighIOTC\n" + light + "\n" + "humiSOIL\n" + humiSoil + "\n" + "movePIR\n" + prox);
+  //carrier.display.print("tempIOTC\n" + String(temp) + "\n" + "humiIOTC\n" + humi + "\n" + "lighIOTC\n" + light + "\n" + "humiSOIL\n" + humiSoil + "\n" + "movePIR\n" + prox);
   
-  String result = "";
-  serializeJson(data, result);
-  return result;
 }
 
 // package data to send
@@ -292,17 +283,17 @@ String getHumi() {
 }
 
 // get light from IOT Carrier
-void getLight() {  
+String getLight() {  
   while (! carrier.Light.colorAvailable()) {
     delay(5);
   }
-  carrier.Light.readColor(r, g, b, light);
-}s
+  return formatLineProtocol("light", String(carrier.Light.readColor(r, g, b, light)));
+}
 
 // get humidity from SIL sensor
-int getSoilHum() {
+String getSoilHum() {
   int raw_moisture = analogRead(moistPin);
-  return map(raw_moisture, 0, 1023, 0, 100);
+  return formatLineProtocol("soil humidity", String(map(raw_moisture, 0, 1023, 0, 100)));
 }
 
 // get movement from PIR sensor
