@@ -22,13 +22,18 @@ int status = WL_IDLE_STATUS;     // the WiFi radio's status
 WiFiClient wifiClient;
 MqttClient mqttClient(wifiClient);
 
-const char broker[] = "test.mosquitto.org";
+String location = "serre_1";
+
+const char broker[] = "192.168.9.194";
 int        port     = 1883;
 
-const char topicSub[]  = "real_unique_topic";
-const char topicPub[]  = "real_unique_topic_2";
+String topicSub  = "commander/"; // A tester sous forme de String
+String topicPub  = "arduino";
+
+String deviceUID = "";
 
 const int moistPin = A6;
+const int fanPin = 14;
 
 // Sensors
 #define tempIOTC
@@ -43,7 +48,8 @@ int pir;
 IPAddress commander(192,168,9,194); //your central server address
 
 //set interval for sending messages (milliseconds)
-const long interval = 8000;
+// TODO ajouter les intervals pour chaque capteur individuel
+const long interval = 10000;
 unsigned long previousMillis = 0;
 int count = 0;
 
@@ -67,9 +73,6 @@ void setup() {
   carrier.display.setRotation(0);
   delay(1500);
   pinMode(pir, INPUT);
-
-  // TEST getData. TODO: remove when done testing here
-  //getData();
 
   // check for the WiFi module:
   if (WiFi.status() == WL_NO_MODULE) {
@@ -98,9 +101,13 @@ void setup() {
   byte mac[6];
   WiFi.macAddress(mac);
   for(int i = 0; i < 6; ++i){
-    Serial.print(mac[i]);
+    deviceUID += mac[i];
   }
   Serial.println();
+
+  Serial.print("Your device ID is: ");
+  Serial.println(deviceUID);
+  topicSub += deviceUID + "/#";
 
   Serial.print("Attempting to connect to the MQTT broker: ");
   Serial.println(broker);
@@ -122,13 +129,11 @@ void setup() {
   mqttClient.onMessage(listenTopics);
 
   Serial.print("Subscribing to topic: ");
-  Serial.println(topicPub);
   Serial.println(topicSub);
   Serial.println();
 
   // subscribe to a topic
-  mqttClient.subscribe(topicSub);    // TODO A changer pour les vrais topics
-  mqttClient.subscribe(topicPub);
+  mqttClient.subscribe(topicSub);
   
 }
 
@@ -141,12 +146,14 @@ void loop() {
   //delay(2000);
   // test data sensors
   //String myStr = getData();
+  // TODO adapter le système d'interval et automatiser le choix du topic
   unsigned long currentMillis = millis();
 
   if (currentMillis - previousMillis >= interval) {
     // save the last time a message was sent
     previousMillis = currentMillis;
     publishTopics(topicPub, "Hey! I told you to STOOOOOP!");
+    
   }
         
 }
@@ -167,7 +174,7 @@ void listenTopics(int messageSize){
   Serial.println();
 }
 
-void publishTopics(const char* topic, String value){
+void publishTopics(String topic, String value){
   Serial.print("Sending message to topic: ");
   Serial.println(topic);
   Serial.println(value);
@@ -215,7 +222,7 @@ String getData() {
   #ifdef tempIOTC
     Serial.print("tempIOTC: ");
     ++sensorCount;
-    float temp = getTemp();
+    String temp = getTemp();
      Serial.println(temp);
     // convert and format to string
     data["temp"] = temp;
@@ -224,7 +231,7 @@ String getData() {
   #ifdef humiIOTC
     Serial.print("humiIOTC: ");
     ++sensorCount;
-    float humi = getHumi();
+    String humi = getHumi();
     Serial.println(humi);
     // convert and format to string
     data["humi"] = humi;
@@ -274,14 +281,14 @@ String getData() {
 // send data
 
 // get temperature from IOT Carrier
-float getTemp() {
+String getTemp() {
   float temp = carrier.Env.readTemperature();
-  return temp;
+  return formatLineProtocol("temperature", String(temp));
 }
 
 // get humidity from IOT Carrier
-float getHumi() {
-  return carrier.Env.readHumidity();
+String getHumi() {
+  return formatLineProtocol("humidity", String(carrier.Env.readHumidity())) ;
 }
 
 // get light from IOT Carrier
@@ -290,7 +297,7 @@ void getLight() {
     delay(5);
   }
   carrier.Light.readColor(r, g, b, light);
-}
+}s
 
 // get humidity from SIL sensor
 int getSoilHum() {
@@ -303,3 +310,8 @@ int getProx() {
   return digitalRead(pir);
 }
 
+String formatLineProtocol(String measurement, String value){
+  String result = measurement;
+  result += ",device=\"" + deviceUID + "\",location=\"" + location + "\" value=\"" + value + "\"";
+  return result;
+}
