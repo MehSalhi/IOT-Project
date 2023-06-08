@@ -15,6 +15,10 @@
 #define SECRET_SSID "."
 #define SECRET_PASS "hqh97n8ircpb5bj"
 
+#define fanON   255
+#define fanOFF  0
+#define fanPIN  A3
+
 MKRIoTCarrier carrier; 
 char ssid[] = SECRET_SSID;        // your network SSID (name)
 char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
@@ -305,4 +309,8 @@ String formatLineProtocol(String measurement, String value){
   String result = measurement;
   result += ",device=\"" + deviceUID + "\",location=\"" + location + "\" value=\"" + value + "\"";
   return result;
+}
+
+void fanCtrl(int val) {
+  analogWrite(fanPIN, val);
 }
