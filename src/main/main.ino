@@ -12,8 +12,11 @@
 #include <ArduinoJson.h>
 #include <ArduinoMqttClient.h>
 
-#define SECRET_SSID "."
-#define SECRET_PASS "hqh97n8ircpb5bj"
+//#define SECRET_SSID "."
+//#define SECRET_PASS "hqh97n8ircpb5bj"
+
+#define SECRET_SSID "Ancalagon"
+#define SECRET_PASS "actuelle"
 
 #define fanON   255
 #define fanOFF  0
@@ -28,16 +31,16 @@ MqttClient mqttClient(wifiClient);
 
 String location = "serre_1";
 
-const char broker[] = "192.168.9.194";
+//const char broker[] = "192.168.9.194";
+const char broker[] = "test.mosquitto.org";
 int        port     = 1883;
 
-String topicSub  = "commander/"; // A tester sous forme de String
+String topicSub  = "commander/devices/"; 
 String topicPub  = "arduino";
 
 String deviceUID = "";
 
-const int moistPin = A6;
-const int fanPin = 14;
+#define moistPin A6
 
 // Sensors
 #define tempIOTC
@@ -56,6 +59,8 @@ IPAddress commander(192,168,9,194); //your central server address
 const long interval = 20000;
 unsigned long previousMillis = 0;
 int count = 0;
+
+DynamicJsonDocument config(1024);
 
 void setup() {
   // put your setup code here, to run once:
@@ -129,6 +134,16 @@ void setup() {
   Serial.println("You're connected to the network");
   printWifiStatus();
 
+  config["deviceUID"] = deviceUID;
+  config["sensors"] = "[\"tempIOTC\", \"humiIOTC\", \"lighIOTC\", \"humiSOIL\", \"movePIR\"]";
+  config["measurement interval"] = 20000;
+  config["deviceLocation"] = "serre_1";
+  config["actions"] = "";
+
+  String confTopic = "commander/devices/" + deviceUID;
+  String conf;
+  serializeJson(config, conf);
+  publishTopics(confTopic, conf);
   // set the message receive callback
   mqttClient.onMessage(listenTopics);
 
@@ -138,7 +153,7 @@ void setup() {
 
   // subscribe to a topic
   mqttClient.subscribe(topicSub);
-  
+  //topicPub = "commander/devices/32203593719188/update";
 }
 
 void loop() {
@@ -154,23 +169,59 @@ void loop() {
     // save the last time a message was sent
     previousMillis = currentMillis;
     sendData();
-    
+    //getProx();
   }
-        
 }
 
 void listenTopics(int messageSize){
+  String topic = mqttClient.messageTopic();
+  String subTop = "";
+  int index_1 = 0;
+  int index_2 = 0;
+  String content = "";
   // we received a message, print out the topic and contents
-  Serial.println("Received a message with topic '");
-  Serial.print(mqttClient.messageTopic());      // TODO Changer pour effectuer les actions en fonction du topic
+  Serial.print("Received a message with topic \n'");
+  Serial.print(topic);      
   Serial.print("', length ");
   Serial.print(messageSize);
   Serial.println(" bytes:");
-
-  // use the Stream interface to print the contents
+  
   while (mqttClient.available()) {
-    Serial.print((char)mqttClient.read());
+    content += String((char)mqttClient.read());
+    //Serial.println(content);
   }
+  Serial.println(content);
+  
+  do{
+    if(index_2 == 0){
+      index_1 = topic.indexOf('/', 0);
+      index_2 = topic.indexOf('/', index_1 + 1);
+      subTop = topic.substring(0, index_1);
+    } else {
+      index_1 = topic.indexOf('/', index_2);
+      index_2 = topic.indexOf('/', index_1 + 1);
+      subTop = topic.substring(index_1 + 1, index_2);
+    }
+    Serial.println(String(index_1) + " : " + index_2);
+    Serial.println(subTop);
+
+    if(subTop == String("update")){
+      Serial.println(content);
+      deserializeJson(config, content);
+      if(config["actions"] == "ON"){
+        Serial.println("fan ON");        
+        fanCtrl(fanON);
+      } else if(config["actions"] == "OFF"){
+        Serial.println("fan OFF");
+        fanCtrl(fanOFF);
+      } else {Serial.println("Nothing to see...");} // Add features here
+
+    } else if (subTop == "test"){
+      Serial.println("This is a test");
+    }
+  }while(index_1 < index_2);
+  
+  
   Serial.println();
   Serial.println();
 }
@@ -179,6 +230,7 @@ void publishTopics(String topic, String value){
   Serial.print("Sending message to topic: ");
   Serial.println(topic);
   Serial.println(value);
+  Serial.println();
 
   // send message, the Print interface can be used to set the message contents
   mqttClient.beginMessage(topic);
@@ -223,7 +275,7 @@ void sendData() {
     String temp = getTemp();
     //Serial.println(temp);
     // convert and format to string
-    publishTopics(topicPub, temp);
+    publishTopics(topicPub, formatLineProtocol("temperature",temp));
   #endif
   
   #ifdef humiIOTC
@@ -232,17 +284,16 @@ void sendData() {
     String humi = getHumi();
     //Serial.println(humi);
     // convert and format to string
-    publishTopics(topicPub, humi);
+    publishTopics(topicPub, formatLineProtocol("humidity", humi));
   #endif
 
   #ifdef lighIOTC
     //Serial.print("lighIOTC: ");
     ++sensorCount;
-    
-    String resLight = getLight();
+    getLight();
     //Serial.println(light);
     // convert and format to string
-    publishTopics(topicPub, resLight);
+    publishTopics(topicPub, formatLineProtocol("light", String(light)));
   #endif
 
   #ifdef humiSOIL
@@ -251,7 +302,7 @@ void sendData() {
     String humiSoil = getSoilHum();
     //Serial.println(humiSoil);
     // convert and format to string
-    publishTopics(topicPub, humiSoil);
+    publishTopics(topicPub, formatLineProtocol("soil humidity", humiSoil));
   #endif
 
   #ifdef movePIR
@@ -267,7 +318,7 @@ void sendData() {
   // should be used to display the return of getData()
   carrier.display.setCursor(0, 0);
   carrier.display.fillScreen(ST77XX_BLACK);
-  //carrier.display.print("tempIOTC\n" + String(temp) + "\n" + "humiIOTC\n" + humi + "\n" + "lighIOTC\n" + light + "\n" + "humiSOIL\n" + humiSoil + "\n" + "movePIR\n" + prox);
+  carrier.display.print("tempIOTC\n" + String(temp) + "\n" + "humiIOTC\n" + humi + "\n" + "lighIOTC\n" + light + "\n" + "humiSOIL\n" + humiSoil + "\n" + "movePIR\n" + prox);
   
 }
 
@@ -278,30 +329,34 @@ void sendData() {
 // get temperature from IOT Carrier
 String getTemp() {
   float temp = carrier.Env.readTemperature();
-  return formatLineProtocol("temperature", String(temp));
+  return  String(temp);
 }
 
 // get humidity from IOT Carrier
 String getHumi() {
-  return formatLineProtocol("humidity", String(carrier.Env.readHumidity())) ;
+  return String(carrier.Env.readHumidity());
 }
 
 // get light from IOT Carrier
-String getLight() {  
+void getLight() {  
   while (! carrier.Light.colorAvailable()) {
     delay(5);
   }
-  return formatLineProtocol("light", String(carrier.Light.readColor(r, g, b, light)));
+  carrier.Light.readColor(r, g, b, light);
 }
 
 // get humidity from SIL sensor
 String getSoilHum() {
   int raw_moisture = analogRead(moistPin);
-  return formatLineProtocol("soil humidity", String(map(raw_moisture, 0, 1023, 0, 100)));
+  Serial.print("HUMI SOIL: ");  
+  Serial.println(raw_moisture);
+  return String(map(raw_moisture, 0, 400, 0, 100));
 }
 
 // get movement from PIR sensor
 int getProx() {
+  Serial.print("prox: ");
+  Serial.println(digitalRead(pir));
   return digitalRead(pir);
 }
 
