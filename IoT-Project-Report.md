@@ -17,13 +17,16 @@ toc-own-page: true
 
 Nous utilisons le matériel suivant: 
 
-- Arduino MKR Wifi 1010
-- Arduino MKR IOT Carrier
-- Raspberry Pi 4b
+- Arduino MKR Wifi 1010 : exécution du code et connectique wifi
+- Arduino MKR IOT Carrier : senseurs et actuateurs
+- Raspberry Pi 4b : broker MQTT, base de donnée InfluxDB, interface web de
+  gestion et configuration des appareils
 
 ## Senseurs
 
 Nous utilisons les senseurs suivants:
+
+
 
 ## Actuateurs
 
