@@ -56,7 +56,7 @@ IPAddress commander(192,168,9,194); //your central server address
 
 //set interval for sending messages (milliseconds)
 // TODO ajouter les intervals pour chaque capteur individuel
-const long interval = 20000;
+long interval = 20000;
 unsigned long previousMillis = 0;
 int count = 0;
 
@@ -136,7 +136,7 @@ void setup() {
 
   config["deviceUID"] = deviceUID;
   config["sensors"] = "[\"tempIOTC\", \"humiIOTC\", \"lighIOTC\", \"humiSOIL\", \"movePIR\"]";
-  config["measurement interval"] = 20000;
+  config["measurement interval"] = interval;
   config["deviceLocation"] = "serre_1";
   config["actions"] = "";
 
@@ -215,7 +215,9 @@ void listenTopics(int messageSize){
         Serial.println("fan OFF");
         fanCtrl(fanOFF);
       } else {Serial.println("Nothing to see...");} // Add features here
+      interval = config["measurement interval"];      
 
+      // TODO Send updated config
     } else if (subTop == "test"){
       Serial.println("This is a test");
     }
