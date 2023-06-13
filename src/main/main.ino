@@ -12,11 +12,11 @@
 #include <ArduinoJson.h>
 #include <ArduinoMqttClient.h>
 
-//#define SECRET_SSID "."
-//#define SECRET_PASS "hqh97n8ircpb5bj"
+#define SECRET_SSID "."
+#define SECRET_PASS "hqh97n8ircpb5bj"
 
-#define SECRET_SSID "Ancalagon"
-#define SECRET_PASS "actuelle"
+//#define SECRET_SSID "Ancalagon"
+//#define SECRET_PASS "actuelle"
 
 #define fanON   255
 #define fanOFF  0
@@ -31,8 +31,8 @@ MqttClient mqttClient(wifiClient);
 
 String location = "serre_1";
 
-//const char broker[] = "192.168.9.194";
-const char broker[] = "test.mosquitto.org";
+const char broker[] = "192.168.9.194";
+//const char broker[] = "test.mosquitto.org";
 int        port     = 1883;
 
 String topicSub  = "commander/devices/"; 
@@ -302,7 +302,7 @@ void sendData() {
     String humiSoil = getSoilHum();
     //Serial.println(humiSoil);
     // convert and format to string
-    publishTopics(topicPub, formatLineProtocol("soil humidity", humiSoil));
+    publishTopics(topicPub, formatLineProtocol("soil_humidity", humiSoil));
   #endif
 
   #ifdef movePIR
@@ -362,7 +362,7 @@ int getProx() {
 
 String formatLineProtocol(String measurement, String value){
   String result = measurement;
-  result += ",device=\"" + deviceUID + "\",location=\"" + location + "\" value=\"" + value + "\"";
+  result += ",device=" + deviceUID + ",location=" + location + " value=" + value + "";
   return result;
 }
 
