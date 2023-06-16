@@ -1,5 +1,6 @@
 ---
-title: "IoT - Labo04 - Rapport"
+title: "IoT - Projet Serre connectée"
+subtitle: "Rapport et documentation"
 author: 
 - Anthony Coke
 - Guilain Mbayo
@@ -13,6 +14,10 @@ toc-own-page: true
 
 # Projet
 
+Ce projet permet de réaliser une serre connectée. Il utilise des composants
+Arduino pour prendre les mesures et Raspberry pour ingérer et afficher les
+donnée.
+
 # Matériel
 
 Nous utilisons le matériel suivant: 
@@ -24,15 +29,31 @@ Nous utilisons le matériel suivant:
 
 ## Senseurs
 
-Nous utilisons les senseurs suivants:
+Nous utilisons les senseurs suivants qui permettent de prendre des mesures :
 
+- Arduino MKR UIT Carrier
+    - température : HTS221
+    - humidité : HTS221
+    - lumière : APDS-9960
+- humidité du sol : Capacitive Soil Moisture Sensor v1.2
 
 
 ## Actuateurs
 
-Nous utilisons les actuateurs suivants:
+Nous utilisons un actuateur : 
+
+- ventilateur : Xilence XPF40.W DC12v 0.05A
 
 # Logiciel
+
+Les logiciels suivants sont utilisés :
+
+- InfluxDB :
+- Telegraf : 
+- Mosquitto : 
+- Arduino : 
+- NodeJS 16.17.1 : 
+- TailwindCSS
 
 # Architecture
 
