@@ -31,11 +31,12 @@ Nous utilisons le matériel suivant:
 
 Nous utilisons les senseurs suivants qui permettent de prendre des mesures :
 
-- Arduino MKR UIT Carrier
+- Arduino MKR IOT Carrier
     - température : HTS221
     - humidité : HTS221
     - lumière : APDS-9960
 - humidité du sol : Capacitive Soil Moisture Sensor v1.2
+    - connecté à l'Arduino MRK IOT Carrier
 
 
 ## Actuateurs
@@ -48,12 +49,23 @@ Nous utilisons un actuateur :
 
 Les logiciels suivants sont utilisés :
 
-- InfluxDB :
-- Telegraf : 
-- Mosquitto : 
-- Arduino : 
-- NodeJS 16.17.1 : 
-- TailwindCSS
+- InfluxDB 2.71 : base de données
+- Telegraf 1.26.3 : ingestion des données au format `line protocol` depuis le 
+    broker MQTT vers la base de
+  donnée InfluxDB
+- Mosquitto 2.0.11-1 : broker MQTT
+- Arduino : code arduino pour récupérer les mesures et communiquer avec le
+  broker MQTT
+- NodeJS 16.17.1 : serveur web d'administration
+    - dépendances :
+        - influxdata/influxdb-client": "^1.33.2"
+        - tailwindcss/forms": "^0.5.3"
+        - body-parser": "^1.20.2"
+        - express": "^4.18.2"
+        - express-requests-logger": "^4.0.0"
+        - mqtt": "^4.3.7"
+        - plotly.js": "^2.24.2"
+        - tailwindcss": "^3.3.2"
 
 # Architecture
 
