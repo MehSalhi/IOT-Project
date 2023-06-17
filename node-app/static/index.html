@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <!-- Bad practice, but can't figure out another way ... -->
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self' 'unsafe-inline'  http://ajax.googleapis.com https://cdn.jsdelivr.net ws://test.mosquitto.org:8080 https://test.mosquitto.org:8080/; img-src 'self' http://localhost:3000/; ">
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script src="./mqtt.min.js"></script>
+
+</html>
+<title>Dashboard</title>
+<link type="text/css" href="./output.css" rel="stylesheet">
+</head>
+
+<body class="bg-gray-100">
+  <div class="min-h-full">
+    <nav class="bg-indigo-800">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex h-16 items-center justify-between">
+          <div class="flex items-center">
+            <div class="hidden md:block">
+              <div class="ml-10 flex items-baseline space-x-4">
+                <a href="./index.html" class="bg-indigo-900 text-white rounded-md px-3 py-2 text-sm font-medium font-bold"
+                  aria-current="page">Device Configuration</a>
+                <a href="./vizualization.html"
+                  class="text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium">Visualization</a>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <header class="bg-white shadow">
+      <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <h1 class="text-3xl font-bold tracking-tight text-gray-900">Dashboard</h1>
+      </div>
+    </header>
+    <main>
+      <div class="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
+
+        <form id="commandForm">
+          <div class="space-y-12">
+
+            <div class="border-b border-gray-900/10 pb-12">
+              <h2 class="text-base font-semibold leading-7 text-gray-900">Device Command Form</h2>
+              <p class="mt-1 text-sm leading-6 text-gray-600">Change the configuration of a desired device</p>
+
+              <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+
+                <div class="sm:col-span-2">
+                  <label for="country" class="block text-sm font-medium leading-6 text-gray-900">Device Location</label>
+                  <div class="mt-2">
+                    <select id="deviceLocation" name="country" autocomplete="country-name"
+                      class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6">
+                    </select>
+                  </div>
+                </div>
+
+                <div class="sm:col-span-2">
+                  <label for="country" class="block text-sm font-medium leading-6 text-gray-900">Device ID</label>
+                  <div class="mt-2">
+                    <select id="deviceId" name="country" autocomplete="country-name"
+                      class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6">
+                    </select>
+                  </div>
+                </div>
+
+                <div class="sm:col-span-2">
+                  <label for="email" class="block text-sm font-medium leading-6 text-gray-900">Sleep duration</label>
+                  <div class="mt-2">
+                    <input id="deviceSleep" name="email" type="number" autocomplete="email"
+                      class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                  </div>
+                </div>
+
+                <div class="sm:col-span-2">
+                  <label for="email" class="block text-sm font-medium leading-6 text-gray-900">Action</label>
+                  <div class="mt-2">
+                    <input id="deviceAction" name="email" type="text" autocomplete="email"
+                      class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="mt-6 flex items-center justify-end gap-x-6">
+            <button type="submit"
+              class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Update
+              configuration</button>
+          </div>
+        </form>
+      </div>
+      <div class="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
+
+        <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+          <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400" id="dataTable">
+            <thead class="text-xs text-gray-700 uppercase bg-indigo-100">
+              <tr>
+                <th scope="col" class="px-6 py-3">
+                  Device ID
+                </th>
+                <th scope="col" class="px-6 py-3">
+                  <div class="flex items-center">
+                    Location
+                  </div>
+                </th>
+                <th scope="col" class="px-6 py-3">
+                  <div class="flex items-center">
+                    Sensors
+                  </div>
+                </th>
+                <th scope="col" class="px-6 py-3">
+                  <div class="flex items-center">
+                    Sleep Duration
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</body> 
+  <script>
+
+    var allDevices = {};
+    var allLocations = [];
+
+    var deviceIdSelect = document.getElementById('deviceId');
+    var deviceLocationSelect = document.getElementById('deviceLocation');
+
+    var selectedLocation = 'dawd';
+
+    
+    // When selecting a device location, update the device id list
+    deviceLocationSelect.addEventListener('change', function () {
+
+
+      selectedLocation = deviceLocationSelect.value; // Get the selected location
+      console.log("Event triggered") // Debug
+      console.log(`Selected location : ${selectedLocation}`);
+
+      $('#deviceId').empty();
+      var option = document.createElement('option');
+          option.value = '-';
+          option.textContent = '-';
+          deviceIdSelect.appendChild(option);
+
+      // Add all devices from the selected location to the device id list
+      for (const deviceId in allDevices) {
+        if (allDevices.hasOwnProperty(deviceId)) {
+          const device = allDevices[deviceId];
+
+          if (device['deviceLocation'] === selectedLocation) {
+            var option = document.createElement('option');
+            option.value = device['deviceUID'];
+            option.textContent = device['deviceUID'];
+            deviceIdSelect.appendChild(option);
+          }
+        }}
+      deviceLocationSelect.value = selectedLocation
+    });
+
+
+    // Update the data every 5 seconds, and update the table
+    $(document).ready(function () {
+      setInterval(function () {
+        $.get('/data', function (res) {
+
+
+          $('#dataTable tbody').empty();
+          $('#deviceLocation').empty();
+
+          allDevices = res[0];
+          allLocations = res[1];
+
+          for (const deviceId in allDevices) {
+            if (allDevices.hasOwnProperty(deviceId)) {
+              const device = allDevices[deviceId];
+
+              // Add a new row to the table
+              var newRow = document.createElement('tr');
+              newRow.classList.add('bg-white', 'border-b', )
+              newRow.innerHTML = '<th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">' + device.deviceUID + '</th>' +
+                '<td class="px-6 py-4">' + device.deviceLocation + '</td>' +
+                '<td class="px-6 py-4">' + device.sensors + '</td>' +
+                '<td class="px-6 py-4">' + device['measurement interval'] + '</td>';
+              $('#dataTable tbody').append(newRow);
+
+
+            }
+          }
+
+          // Update the location list
+          allLocations.forEach(function (element) {
+
+            var option = document.createElement('option');
+            option.value = element;
+            option.textContent = element;
+            option.selected = false;
+            if (element === selectedLocation) {
+              option.selected = true;
+              deviceLocationSelect.value = selectedLocation
+            }
+            deviceLocationSelect.appendChild(option);
+
+          });
+        });
+      }, 5000);
+    });
+
+
+    // When the form is submitted, send the command to the selected device
+    document.getElementById("commandForm").addEventListener("submit", function (event) {
+      event.preventDefault(); // Prevent form submission
+
+      var deviceId = document.getElementById("deviceId").value;
+      var deviceLoc = document.getElementById("deviceLocation").value;
+      var sleepTime = document.getElementById("deviceSleep").value;
+      var action = document.getElementById("deviceAction").value;
+
+      // Perform command update logic here
+      sendCommand(deviceId, deviceLoc, sleepTime);
+
+      // Reset the form
+      document.getElementById("commandForm").reset();
+    });
+
+    // Function to send MQTT command
+    function sendCommand(deviceId, deviceLoc, sleepTime) {
+      var topic = 'commander/devices/' + deviceId + '/update';
+      var message = JSON.stringify({ deviceUID: deviceId, deviceLocation: deviceLoc, 'measurement interval': sleepTime, actions: action });
+
+      // Connect to the MQTT broker
+      const broker = 'ws://test.mosquitto.org:8080' // Replace with Ip address and port of the MQTT broker
+      const options = {
+          clientId: 'myClientID',
+      };
+      var client = mqtt.connect(broker, options);
+
+      // Send the MQTT message
+      client.on('connect', function () {
+        client.publish(topic, message);
+        console.log('Command sent to topic:', topic);
+        console.log('Message:', message);
+        client.end(); 
+      });
+    }
+  </script>
