@@ -138,3 +138,13 @@ capteur à la configuration initiale envoyé par l'arduino au serveur web.
 Une fois la fonction d'un capteur crée et ajouté dans `sendData`, il suffit de le
 définir ou non au début du code et de l'ajouter ou le retirer dans la
 configuration initiale de l'arduino.
+
+# Mise en place
+
+- Ajouter/retirer les capteurs souhaités dans le code de l'arduino comme
+  expliqué au point précédent.
+- Ajouter le ssid (le nom) et le mot de passe du wifi utilisé dans le fichier
+  secret.h.
+- Modifier l'adresse du broker utilisé en haut du code de l'arduino.
+- Charger le code sur l'arduino au moyen de l'IDE arduino (ou autre).
+- Brancher l'arduino sur secteur ou batterie.

@@ -28,7 +28,7 @@ WiFiClient wifiClient;
 MqttClient mqttClient(wifiClient);
 IPAddress commander(192,168,9,194); //your central server address
 
-// adresse and port of the MQTT broker
+// adresse and port of the MQTT broker: ADAPTE TO YOUR SITUATION
 const char broker[] = "192.168.9.194";
 int        port     = 1883;
 
