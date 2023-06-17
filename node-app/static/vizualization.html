@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <!-- Bad practice, but can't figure out another way ... -->
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' 'unsafe-inline'  http://ajax.googleapis.com https://cdn.plot.ly; img-src 'self' http://localhost:3000/; ">
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js" charset="utf-8"></script>
+    <script src="./vizualization.js"></script>
+
+</html>
+<title>Vizualisation</title>
+<link type="text/css" href="./output.css" rel="stylesheet">
+</head>
+
+<body class="bg-gray-100">
+    <div class="min-h-full">
+        <nav class="bg-indigo-800">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div class="flex h-16 items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="hidden md:block">
+                            <div class="ml-10 flex items-baseline space-x-4">
+                                <a href="./index.html"
+                                    class="text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium"
+                                    aria-current="page">Device Configuration</a>
+                                <a href="./vizualization.html"
+                                    class="bg-indigo-900 text-white rounded-md px-3 py-2 text-sm font-medium font-bold ">Visualization</a>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <header class="bg-white shadow">
+            <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+                <h1 class="text-3xl font-bold tracking-tight text-gray-900">Visualization</h1>
+            </div>
+        </header>
+        <main>
+            <div class="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
+
+                <form id="commandForm">
+                    <div class="space-y-12">
+
+                        <div class="border-b border-gray-900/10 pb-12">
+                            <h2 class="text-base font-semibold leading-7 text-gray-900">Time series display</h2>
+                            <p class="mt-1 text-sm leading-6 text-gray-600">Display the data sent from the device
+                            </p>
+
+                            <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+
+                                <div class="sm:col-span-2">
+                                    <label for="country"
+                                        class="block text-sm font-medium leading-6 text-gray-900">Device
+                                        Location</label>
+                                    <div class="mt-2">
+                                        <select id="deviceLocation" name="country" autocomplete="country-name"
+                                            class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6">
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="sm:col-span-2">
+                                    <label for="country"
+                                        class="block text-sm font-medium leading-6 text-gray-900">Device ID</label>
+                                    <div class="mt-2">
+                                        <select id="deviceId" name="country" autocomplete="country-name"
+                                            class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6">
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="sm:col-span-2">
+                                    <label for="email"
+                                        class="block text-sm font-medium leading-6 text-gray-900">Sensor</label>
+                                    <div class="mt-2">
+                                        <select id="sensor" name="country" autocomplete="country-name"
+                                            class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6">
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="mt-6 flex items-center justify-end gap-x-6">
+                        <button type="submit"
+                            class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Update
+                            graph</button>
+                    </div>
+                </form>
+            </div>
+            <div class="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
+                <!-- Ajout du graph  avec Plotly.JS -->
+                <div id="graphData" class="rounded-md border-0 text-gray-900 ring-1"></div>
+
+            </div>
+        </main>
+    </div>
+</body>
+<script>
+
+    var allDevices = {};
+    var allLocations = [];
+
+    var deviceIdSelect = document.getElementById('deviceId');
+    var deviceLocationSelect = document.getElementById('deviceLocation');
+    var sensorSelect = document.getElementById('sensor');
+    var selectedLocation = 'dawd';
+
+    
+    // When the location is selected, update the device ID list
+    deviceLocationSelect.addEventListener('change', function () {
+
+
+      selectedLocation = deviceLocationSelect.value;
+
+      $('#deviceId').empty();
+      var option = document.createElement('option');
+          option.value = '-';
+          option.textContent = '-';
+          deviceIdSelect.appendChild(option);
+
+      // Update the device ID list
+      for (const deviceId in allDevices) {
+        if (allDevices.hasOwnProperty(deviceId)) {
+          const device = allDevices[deviceId];
+
+          if (device['deviceLocation'] === selectedLocation) {
+            var option = document.createElement('option');
+            option.value = device['deviceUID'];
+            option.textContent = device['deviceUID'];
+            deviceIdSelect.appendChild(option);
+          }
+        }}
+      deviceLocationSelect.value = selectedLocation
+
+
+    // When the device ID is selected, update the sensor list
+    deviceIdSelect.addEventListener('change', function () {
+      selectedDevice = deviceIdSelect.value;
+      console.log(`Selected device : ${selectedDevice}`);
+
+      $('#sensor').empty();
+
+      // Update the sensor list
+      for (const deviceId in allDevices) {
+        if (allDevices.hasOwnProperty(selectedDevice)) {
+          const device = allDevices[selectedDevice];
+
+          // Get all sensors of the selected device
+          device['sensors'].forEach(function (sensor) {
+            var option = document.createElement('option');
+            option.value = sensor;
+            option.textContent = sensor;
+            sensorSelect.appendChild(option);
+          });
+        }
+      
+      }
+
+    });
+
+    });
+
+
+    // Update the device location list every 5 seconds
+    $(document).ready(function () {
+      setInterval(function () {
+        $.get('/data', function (res) {
+
+
+          $('#dataTable tbody').empty();
+          $('#deviceLocation').empty();
+
+          allDevices = res[0];
+          allLocations = res[1];
+
+          allLocations.forEach(function (element) {
+
+            var option = document.createElement('option');
+            option.value = element;
+            option.textContent = element;
+            option.selected = false;
+            if (element === selectedLocation) {
+              option.selected = true;
+              deviceLocationSelect.value = selectedLocation
+            }
+            deviceLocationSelect.appendChild(option);
+
+          });
+        });
+      }, 5000);
+    });
+
+
+    // When the form is submitted, fetch the data from InfluxDB
+function fetchData(deviceUID, deviceLocation, sensor) {
+
+  // API Endpoint to access influxDb data
+  const url = 'http://localhost:3000/influx';
+
+  // Data to send to the API
+  const data = {
+    deviceUID: deviceUID,
+    deviceLocation: deviceLocation,
+    sensor: sensor
+  };
+
+  // Send data to the API and get the response
+  fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  })
+  .then(response => response.json())
+  .then(result => {
+    createGraph(result);
+  })
+  .catch(error => {
+    console.error('Erreur lors de la récupération des données depuis InfluxDB :', error);
+  });
+}
+
+// Once data has been fetched, create the graph with Plotly.JS
+function createGraph(data) {
+
+    const deviceId = data[0].device;
+    const deviceLocation = data[0].location;
+
+
+    const timestamps = data.map(item => item._time);
+    const temperatures = data.map(item => item._value);
+
+    const convertedTimestamps = timestamps.map(timestamp => new Date(timestamp));
+
+    const trace = {
+  x: convertedTimestamps,
+  y: temperatures,
+  mode: 'lines',
+  type: 'scatter',
+  name: `${data[0]._measurement}`
+};
+
+const now = new Date();
+const twoDaysAgo = new Date(now);
+twoDaysAgo.setDate(now.getDate() - 2);
+
+const layout = {
+  title: `${data[0]._measurement} Time Series for device ${deviceId} at ${deviceLocation}` ,
+  xaxis: {
+
+autorange: true,
+
+range: ['2015-02-17', '2017-02-16'],
+
+rangeselector: {buttons: [
+
+    {
+      count: 1,
+      label: '1m',
+      step: 'month',
+      stepmode: 'backward'
+    },
+    {
+      count: 6,
+      label: '6m',
+      step: 'month',
+      stepmode: 'backward'
+    },
+    {
+      count: 12,
+      label: '12m',
+      step: 'month',
+      stepmode: 'backward'
+    },
+  ]},
+
+rangeslider: {range: [twoDaysAgo.toISOString(), now.toISOString()]},
+type: 'date'
+},
+yaxis: {
+autorange: true,
+type: 'linear'
+}
+};
+
+const targetElement = document.getElementById('graphData');
+
+Plotly.newPlot(targetElement, [trace], layout);
+
+}
+
+// When the form is submitted, fetch the data from InfluxDB
+document.getElementById("commandForm").addEventListener("submit", function (event) {
+      event.preventDefault(); // Prevent form submission
+
+      var deviceId = document.getElementById("deviceId").value;
+      var deviceLoc = document.getElementById("deviceLocation").value;
+      var sensor = document.getElementById("sensor").value;
+
+      fetchData(deviceId, deviceLoc, sensor);
+
+      // Reset the form
+      document.getElementById("commandForm").reset();
+    });
+</script>
