@@ -5,7 +5,7 @@ const app = express()
 const port = 3000
 
 const protocol = 'mqtt'
-const mqtt_host = 'ip_addr' // Modify with the Ip address of the MQTT broker
+const mqtt_host = '192.168.7.194' // Modify with the Ip address of the MQTT broker
 const mqtt_port = '1883'
 
 const bodyParser = require('body-parser');
@@ -27,7 +27,7 @@ const options = {
   app.use(express.static(__dirname + "/static"));
 
 
-app.get('/', (res) => {
+app.get('/', (req, res) => {
   
     // Affiche le fichier index.html
     res.sendFile(`${__dirname}/static/index.html`);
@@ -85,7 +85,7 @@ app.listen(port, () => {
     });
 });
 
-app.get('/data', (res) => {
+app.get('/data', (req, res) => {
     res.send([devices, locations])
 })
 
@@ -104,7 +104,7 @@ const {InfluxDB} = require('@influxdata/influxdb-client')
 
 // Not great but it's a POC
 const token = 'FqAcY3TmDmEl6xfidOWN9eEoh9NTKzRc0bJoLf1srfZaadVQIfqJ5vFymaLK1tpWlF-USUd9M32e3GPyOkYW9A=='
-const url = 'http://<Ip_Addr>8086' // Modify with the Ip address of the InfluxDB server
+const url = 'http://192.168.7.194:8086' // Modify with the Ip address of the InfluxDB server
 
 const client = new InfluxDB({url, token})
 
