@@ -35,9 +35,9 @@ Nous utilisons le matériel suivant:
 - Raspberry Pi 4b : broker MQTT, base de donnée InfluxDB, interface web de
   gestion et configuration des appareils
 
-![Arduino MKR Iot Carrier](figures/mkr_iot_carrier_plant.png)
+![Arduino MKR Iot Carrier (source: site Arduino)](figures/mkr_iot_carrier_plant.png)
 
-![Arduino MKR Wifi 1010](figures/ard_mkr_1010.png)
+![Arduino MKR Wifi 1010 (Source: site Arduino)](figures/ard_mkr_1010.png)
 
 
 
