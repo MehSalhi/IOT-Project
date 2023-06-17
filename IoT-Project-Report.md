@@ -58,6 +58,13 @@ Nous utilisons les senseurs suivants qui permettent de prendre des mesures :
 Nous utilisons un actuateur : 
 
 - ventilateur : Xilence XPF40.W DC12v 0.05A
+    - le ventilateur est connecté à un transistor mosfet qui permet de contrôler
+      son alimentation via un signal envoyé depuis l'Arduino MKR Wifi 1010. Le
+      mosfet utilisé est un `BF 256b` (documentation: <https://www.mouser.com/datasheet/2/149/bf256b-292516.pdf>)
+
+![Connection ventilateur avec transistor Mosfet](figures/iot_fan_sch.png){width=40%}
+
+![Connection ventilateur avec transistor Mosfet](figures/iot_fan.png){width=40%}
 
 # Logiciel
 
