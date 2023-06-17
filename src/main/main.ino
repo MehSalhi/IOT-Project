@@ -279,6 +279,8 @@ void sendData() {
     publishTopics(topicPub, formatLineProtocol("soil_humidity", humiSoil));
   #endif
 
+  // ADD OTHER SENSOR HERE  
+
   // should be used to display the return of getData() on the MKR screen
   carrier.display.setCursor(0, 0);
   carrier.display.fillScreen(ST77XX_BLACK);
@@ -310,6 +312,8 @@ String getSoilHum() {
   int raw_moisture = analogRead(moistPin);
   return String(map(raw_moisture, 0, 400, 0, 100));
 }
+
+// ADD YOUR SENSOR FUNCTIONS HERE
 
 // format a measurement and its value to line protocol format
 String formatLineProtocol(String measurement, String value){

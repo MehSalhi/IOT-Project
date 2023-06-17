@@ -94,6 +94,9 @@ suivante:
   `{"deviceUID":"32203593719188","deviceLocation":"serre_1","measurement
   interval":3000,"sensors":["humidity","temperature","light"],"actions":""}`
 
+  Il publie également sa configuration lorsque elle vient d'être modifiée par le
+  serveur web.
+
 - Les arduino s'abonne au topic `commander/devices/<device id>/update` afin de
   recevoir les éventuelles modifications de configuration envoyées par le
   serveur web.
@@ -116,5 +119,13 @@ Ci-dessous, un graphique de l'architecture mise en place:
 
 ![Architecture](figures/IOT_arch.drawio.png)
 
-# Problèmes rencontrés
+# Possibilités d'évolutions
+
+Afin de faire évoluer le projet, il conviendrait
+d'ajouter le code nécessaire au relevé de valeurs avec d'autres capteurs que
+ceux utilisés jusque ici (une sonde NPK par exemple) dans des fonctions, de les 
+appeler entre `ifdef ... endif` selon le même modèle que celle déjà
+implémentées, de les définir en début de code et d'ajouter le capteur à la
+configuration initiale envoyé par l'arduino au serveur web.
+
 
