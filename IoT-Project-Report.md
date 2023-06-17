@@ -16,7 +16,15 @@ toc-own-page: true
 
 Ce projet permet de réaliser une serre connectée. Il utilise des composants
 Arduino pour prendre les mesures et Raspberry pour ingérer et afficher les
-donnée.
+donnée. Il est possible d'y ajouter des appareils avec senseurs et actuateurs
+variés qui s'inscriront et publieront automatiquement sur un broker MQTT afin
+d'envoyer leur configuration (ID, liste de senseurs et actuateurs, intervalle de
+mesure) ainsi que leurs mesures.
+
+L'objectif de ce projet est de pouvoir surveiller les données environnementales
+d'une serre telles que la température, l'humidité du sol et de l'air, la
+luminosité ainsi que d'activer des actuateurs tels qu'un ventilateur par
+exemple.
 
 # Matériel
 
@@ -26,6 +34,12 @@ Nous utilisons le matériel suivant:
 - Arduino MKR IOT Carrier : senseurs et actuateurs
 - Raspberry Pi 4b : broker MQTT, base de donnée InfluxDB, interface web de
   gestion et configuration des appareils
+
+![Arduino MKR Iot Carrier](figures/mkr_iot_carrier_plant.png)
+
+![Arduino MKR Wifi 1010](figures/ard_mkr_1010.png)
+
+
 
 ## Senseurs
 
