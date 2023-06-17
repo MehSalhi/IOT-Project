@@ -69,8 +69,38 @@ Les logiciels suivants sont utilisés :
 
 # Architecture
 
-![Architecture](figures/IOT_arch.drawio.png)
+Les communication entre les clients et le broker s'effectuent de la manière
+suivante:
 
+- Lorsque un arduino se connecte au réseau, il publie sa configuration initiale
+  sur le topic `commander/devices/<device id>/`, ou le device id est un
+  identifiant unique basé sur l'adresse MAC de l'appareil. 
+
+  Une configuration peut ressembler à cela:
+  `{"deviceUID":"32203593719188","deviceLocation":"serre_1","measurement
+  interval":3000,"sensors":["humidity","temperature","light"],"actions":""}`
+
+- Les arduino s'abonne au topic `commander/devices/<device id>/update` afin de
+  recevoir les éventuelles modifications de configuration envoyées par le
+  serveur web.
+
+- Le serveur web s'abonne au topic `commander/devices/+` afin de recevoir les
+  configurations de tous les client arduino.
+
+- Le serveur web peut publier des modification de configuration pour un arduino.
+  Il publie ces modifications sur le topic `commander/devices/<device
+  id>/update`.
+
+- Les arduino publie à interval régulier les informations relevées par leurs
+  capteurs sur le topic `arduino`. Ces informations sont envoyées au format
+  "Line Protocol".
+
+- Le web serveur s'abonne au topic `arduino` afin de recevoir et traiter les
+  informations relevées par les arduino.
+
+Ci-dessous, un graphique de l'architecture mise en place:
+
+![Architecture](figures/IOT_arch.drawio.png)
 
 # Problèmes rencontrés
 
