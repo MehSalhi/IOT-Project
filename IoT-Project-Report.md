@@ -26,6 +26,10 @@ d'une serre telles que la température, l'humidité du sol et de l'air, la
 luminosité ainsi que d'activer des actuateurs tels qu'un ventilateur par
 exemple.
 
+# Code
+
+Le code est accessible sur le GitHub du projet: <https://github.com/MehSalhi/IOT-Project/>
+
 # Matériel
 
 Nous utilisons le matériel suivant: 
