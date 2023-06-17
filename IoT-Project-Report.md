@@ -131,8 +131,10 @@ Ci-dessous, un graphique de l'architecture mise en place:
 Afin de faire évoluer le projet, il conviendrait
 d'ajouter le code nécessaire au relevé de valeurs avec d'autres capteurs que
 ceux utilisés jusque ici (une sonde NPK par exemple) dans des fonctions, de les 
-appeler entre `ifdef ... endif` selon le même modèle que celle déjà
-implémentées, de les définir en début de code et d'ajouter le capteur à la
-configuration initiale envoyé par l'arduino au serveur web.
+appeler entre `ifdef ... endif` dans la fonction `sendData` selon le même modèle 
+que celle déjà implémentées, de les définir en début de code et d'ajouter le 
+capteur à la configuration initiale envoyé par l'arduino au serveur web.
 
-
+Une fois la fonction d'un capteur crée et ajouté dans `sendData`, il suffit de le
+définir ou non au début du code et de l'ajouter ou le retirer dans la
+configuration initiale de l'arduino.

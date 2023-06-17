@@ -43,6 +43,7 @@ String deviceUID = "";
 #define humiIOTC
 #define lighIOTC
 #define humiSOIL
+// ADD YOUR SENSORS HERE
 
 int r, g, b, light;
 
@@ -122,7 +123,7 @@ void setup() {
   Serial.println("You're connected to the network");
   printWifiStatus();
 
-  // device initial configuration
+  // device initial configuration: ADAPTE SENSORS LIST TO YOUR NEEDS
   config["deviceUID"] = deviceUID;
   config["sensors"] = "[\"tempIOTC\", \"humiIOTC\", \"lighIOTC\", \"humiSOIL\", \"movePIR\"]";
   config["measurement interval"] = interval;
