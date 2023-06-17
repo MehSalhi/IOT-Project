@@ -88,6 +88,11 @@ Les logiciels suivants sont utilisés :
         - plotly.js": "^2.24.2"
         - tailwindcss": "^3.3.2"
 
+
+![Interface web](figures/web_gui.png){width=80%}
+
+![Dashboard InfluxDB](figures/data_influxdb.png){width=80%}
+
 # Architecture
 
 Les communication entre les clients et le broker s'effectuent de la manière
