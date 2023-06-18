@@ -152,6 +152,9 @@ configuration initiale de l'arduino.
 # Mise en place
 
 ## Arduino
+
+Pour mettre en place le projet sur l'arduino, il faut:
+
 - Ajouter/retirer les capteurs souhaités dans le code de l'arduino comme
   expliqué au point précédent.
 - Ajouter le ssid (le nom) et le mot de passe du wifi utilisé dans le fichier
@@ -161,6 +164,9 @@ configuration initiale de l'arduino.
 - Brancher l'arduino sur secteur ou batterie.
 
 ## Raspberry Pi
+
+Pour mettre en place l'environnement sur le raspberry pi, il faut: 
+
 - Premièrement, installer Ubuntu Server LTS sur le raspberry pi.
 - Installer le broket MQTT Mosquito au moyen de ce tutoriel (https://randomnerdtutorials.com/how-to-install-mosquitto-broker-on-raspberry-pi/#mosquitto-no-authentication) 
 et activer le mode No Authentication.
@@ -175,7 +181,7 @@ et activer le mode No Authentication.
 - Les données des senseurs envoyées au Broker MQTT peuvent désormais être récupérées par Telegraf et transférées dans la base de données InfluxDB.
 - Pour mettre en place le serveur NodeJS, il faut cloner le dépôt github sur le raspberry pi. Se rendre dans le répertoire node-app, puis exécuter `npm install` pour télécharger les
 dépendances.
-- Modifier le code de l'application pour que les adresses IP et ports de l'instance InfluxDB, du broket MQTT correspondent à votre infrastructure.
+- Modifier le code de l'application pour que les adresses IP et ports de l'instance InfluxDB, du broket MQTT correspondant à votre infrastructure.
 - Démarrer ensuite le serveur avec `npm run start`.
 - Pour visualiser plus en détail les données avec un panneau d'administration, se rendre sur l'interface d'InfluxDB dans l'onglet `Dashboard` et créer un dashboard.
 - Ajouter une cellule et construire la requête au moyen du Query Builder. Définir la plage de temps.
