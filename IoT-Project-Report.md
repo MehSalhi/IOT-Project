@@ -168,12 +168,14 @@ Pour mettre en place le projet sur l'arduino, il faut:
 Pour mettre en place l'environnement sur le raspberry pi, il faut: 
 
 - Premièrement, installer Ubuntu Server LTS sur le raspberry pi.
+- Autoriser l'accès en SSH.
+- Connecter le Raspberry Pi au réseau Wi-fi utilisé par l'arduino.
 - Installer le broket MQTT Mosquito au moyen de ce tutoriel (https://randomnerdtutorials.com/how-to-install-mosquitto-broker-on-raspberry-pi/#mosquitto-no-authentication) 
 et activer le mode No Authentication.
 - Installer le `mosquitto-clients` sur un PC distant en suivant le même tutoriel si besoin pour les tests.
-- Installer NodeJS via le package manager
-- Installer InfluxDB 2.7 à l'aide de la documentation officielle (https://docs.influxdata.com/influxdb/v2.7/install/?t=Linux) et démarrer un service
-- Installer Telegraf 1.27 en suivant la documentation (https://docs.influxdata.com/telegraf/v1.27/install/)
+- Installer NodeJS via le package manager.
+- Installer InfluxDB 2.7 à l'aide de la documentation officielle (https://docs.influxdata.com/influxdb/v2.7/install/?t=Linux) et démarrer un service.
+- Installer Telegraf 1.27 en suivant la documentation (https://docs.influxdata.com/telegraf/v1.27/install/).
 - Se rendre sur l'interface web de InfluxDB, se créer un compte, créer un bucket et un organisation puis se rendre dans l'onglet Load Data > Telegraf. Cliquer sur 
   `InfluxDB Output Plugin` et copier le contenu. Créer une configuration avec le bucket de votre choix et la source `MQTT Consumer`. Ajouter à la suite de la config le plugin Influx copié.
   Configurer les topics auxquels Telegraf doit s'abonner.
