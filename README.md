@@ -118,8 +118,3 @@ suivante:
 - Le web serveur s'abonne au topic `arduino` afin de recevoir et traiter les
   informations relevées par les arduino.
 
-Ci-dessous, un graphique de l'architecture mise en place:
-
-
-
-
